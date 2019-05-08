@@ -1,6 +1,7 @@
 .game-field {
   background-color: gray;
   width: 220px;
+  padding: 20px;
 }
 
 .game-field__row {
@@ -20,3 +21,40 @@
 .game-field__col:not(:first-child) {
   margin-left: -4px;
 }
+
+.game-field__col__color-none {
+  background-color: #becce2;
+}
+
+.game-field__col__color-1 {
+  background-color: #0063ff;
+}
+
+.game-field__col__color-2 {
+  background-color: #00fffa;
+}
+
+.game-field__col__color-3 {
+  background-color: #3bff00;
+}
+
+.game-field__col__color-4 {
+  background-color: #f2ff00;
+}
+
+.game-field__col__color-5 {
+  background-color: #ff5900;
+}
+
+.game-field__col__color-6 {
+  background-color: #ff0000;
+}
+
+.game-field__col__color-7 {
+  background-color: #5d00ff;
+}
+.game-field__col__color-8 {
+  background-color: #ff00f2;
+}
+
+
