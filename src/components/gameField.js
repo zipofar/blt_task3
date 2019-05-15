@@ -1,10 +1,11 @@
 import React from 'react';
 import _ from 'lodash';
 import './gameField.css';
+import Timer from './timer';
 
 export default class GameField extends React.Component {
   static defaultProps = { game_dimension: 4 }
-  state = {game: {}, prevCell: {}}
+  state = { game: {}, prevCell: {}, gameState: 'waitStart' }
 
   generate_colors (count_pairs) {
     return Array(count_pairs)
@@ -18,13 +19,20 @@ export default class GameField extends React.Component {
     const { game_dimension } = this.props;
     const colors = this.generate_colors(game_dimension * 2);
     const game = colors.reduce((a, e, i) => ({...a, [i + 1]: { color: e, isShow: false, id: i + 1 }}), {});
-    this.setState({ game });
+    this.setState({ game, gameState: 'play' });
   }
 
   handle_click (num_cell) {
     const { game, prevCell } = this.state;
     const currentCell = game[num_cell];
     const findedPairCell = _.find(game, (o) => (o.color === currentCell.color && o.id !== currentCell.id));
+
+    if (currentCell.isShow && findedPairCell.isShow && prevCell.id !== currentCell.id) {
+      this.setState({ prevCell: {} });
+      this.setState({ game: { ...game, [prevCell.id]: { ...prevCell, isShow: false } } });
+      return;
+    }
+
     if (currentCell.isShow && findedPairCell.isShow) {
       this.setState({ prevCell: {} });
       return;
@@ -51,8 +59,6 @@ export default class GameField extends React.Component {
     if (currentCell.color !== prevCell.color) {
       this.setState({ prevCell: {} });
       this.setState({ game: { ...game, [prevCell.id]: { ...prevCell, isShow: false } } });
-      console.log(findedPairCell)
-      return;
     }
   }
 
@@ -108,12 +114,14 @@ export default class GameField extends React.Component {
   }
 
   render() {
+    const { gameState } = this.state;
     return (
       <div>
         <div className="game-field">
           {this.build_field()}
         </div>
         <button onClick={() => (this.generate_game())}>Start</button>
+        {gameState === 'play' ? <Timer /> : null}
       </div>
     );
   }
