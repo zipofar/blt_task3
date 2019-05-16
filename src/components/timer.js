@@ -3,10 +3,25 @@ import React from 'react';
 export default class Timer extends React.Component {
   constructor(props) {
     super(props);
+    this.state = { minutes: 0, sec: 0, milisec: 0 }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.timerIsStart === true && prevProps.timerIsStart === false) {
+      this.startTimer();
+      return;
+    }
+
+    if (this.props.timerIsStart === false && prevProps.timerIsStart === true) {
+      this.stopTimer();
+      return;
+    }
+  }
+
+  startTimer() {
     this.timerIdMilisec = setInterval(() => this.incMilisec(), 100);
     this.timerIdSec = setInterval(() => this.incSec(), 1000);
     this.timerIdMinutes = setInterval(() => this.incMin(), 60000);
-    this.state = { minutes: 0, sec: 0, milisec: 0 }
   }
 
   stopTimer() {
@@ -33,6 +48,9 @@ export default class Timer extends React.Component {
   }
 
   renderMilisec(milisec) {
+    if (milisec === 0) {
+      return '000';
+    }
     if (milisec < 100) {
       return `0${this.getRandom()}`;
     }

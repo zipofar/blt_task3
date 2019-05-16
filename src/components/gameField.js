@@ -5,8 +5,13 @@ import Timer from './timer';
 
 export default class GameField extends React.Component {
   static defaultProps = { game_dimension: 4 }
-  state = { game: {}, prevCell: {}, gameState: 'waitStart' }
+  state = { game: {}, prevCell: {}, gameState: 'stop' }
 
+  componentDidUpdate(prevProps) {
+    if (this.gameIsFinish()) {
+      this.setState({ gameState: 'stop' })
+    }
+  }
   generate_colors (count_pairs) {
     return Array(count_pairs)
       .fill(0)
@@ -20,6 +25,12 @@ export default class GameField extends React.Component {
     const colors = this.generate_colors(game_dimension * 2);
     const game = colors.reduce((a, e, i) => ({...a, [i + 1]: { color: e, isShow: false, id: i + 1 }}), {});
     this.setState({ game, gameState: 'play' });
+  }
+
+  gameIsFinish () {
+    const { game } = this.state;
+    const hiddenCell = _.find(game, { isShow: false });
+    return _.isUndefined(hiddenCell);
   }
 
   handle_click (num_cell) {
@@ -115,13 +126,14 @@ export default class GameField extends React.Component {
 
   render() {
     const { gameState } = this.state;
+    const timerIsStart = gameState === 'play';
     return (
       <div>
         <div className="game-field">
           {this.build_field()}
         </div>
         <button onClick={() => (this.generate_game())}>Start</button>
-        {gameState === 'play' ? <Timer /> : null}
+        <Timer timerIsStart={timerIsStart} />
       </div>
     );
   }
