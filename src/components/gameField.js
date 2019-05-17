@@ -5,13 +5,23 @@ import Timer from './timer';
 
 export default class GameField extends React.Component {
   static defaultProps = { game_dimension: 4 }
-  state = { game: {}, prevCell: {}, gameState: 'stop' }
 
-  componentDidUpdate(prevProps) {
-    if (this.gameIsFinish()) {
+  constructor (props) {
+    super(props);
+    this.state = { game: {}, prevCell: {}, gameState: 'stop' }
+    this.timer = React.createRef();
+  }
+
+  componentDidUpdate() {
+    const { gameState } = this.state;
+    if (this.gameIsFinish() && gameState === 'play') {
       this.setState({ gameState: 'stop' })
+      const { minutes, sec, fakeMilisec } = this.timer.current.state;
+      const congratsMsg = `You are winner!\nElapsed time: ${minutes}:${sec}.${fakeMilisec}`;
+      alert(congratsMsg);
     }
   }
+
   generate_colors (count_pairs) {
     return Array(count_pairs)
       .fill(0)
@@ -23,54 +33,46 @@ export default class GameField extends React.Component {
   generate_game () {
     const { game_dimension } = this.props;
     const colors = this.generate_colors(game_dimension * 2);
-    const game = colors.reduce((a, e, i) => ({...a, [i + 1]: { color: e, isShow: false, id: i + 1 }}), {});
+    const game = colors.reduce((a, e, i) => ({...a, [i + 1]: { color: e, isShow: false, inGame: true, id: i + 1 }}), {});
     this.setState({ game, gameState: 'play' });
   }
 
   gameIsFinish () {
     const { game } = this.state;
-    const hiddenCell = _.find(game, { isShow: false });
+    const hiddenCell = _.find(game, { inGame: true });
     return _.isUndefined(hiddenCell);
   }
 
-  handle_click (num_cell) {
+  check (num_cell) {
     const { game, prevCell } = this.state;
     const currentCell = game[num_cell];
-    const findedPairCell = _.find(game, (o) => (o.color === currentCell.color && o.id !== currentCell.id));
 
-    if (currentCell.isShow && findedPairCell.isShow && prevCell.id !== currentCell.id) {
-      this.setState({ prevCell: {} });
-      this.setState({ game: { ...game, [prevCell.id]: { ...prevCell, isShow: false } } });
-      return;
-    }
-
-    if (currentCell.isShow && findedPairCell.isShow) {
-      this.setState({ prevCell: {} });
+    if (currentCell.inGame === false) {
       return;
     }
 
     if (_.isEmpty(prevCell)) {
       this.setState({ prevCell: currentCell });
-      this.setState({ game: { ...game, [currentCell.id]: { ...currentCell, isShow: true } } });
-      return;
-    }
-
-    if (currentCell.id === prevCell.id) {
-      this.setState({ prevCell: {} });
-      this.setState({ game: { ...game, [currentCell.id]: { ...currentCell, isShow: !currentCell.isShow } } });
       return;
     }
 
     if (currentCell.color === prevCell.color && currentCell.id !== prevCell.id) {
       this.setState({ prevCell: {} });
-      this.setState({ game: { ...game, [currentCell.id]: { ...currentCell, isShow: true } } });
+      this.setState({ game: { ...game, [prevCell.id]: { ...prevCell, inGame: false }, [currentCell.id]: { ...currentCell, inGame: false } } });
       return;
     }
 
     if (currentCell.color !== prevCell.color) {
+      this.setState({ game: { ...game, [prevCell.id]: { ...prevCell, isShow: false }, [currentCell.id]: { ...currentCell, isShow: false } } });
       this.setState({ prevCell: {} });
-      this.setState({ game: { ...game, [prevCell.id]: { ...prevCell, isShow: false } } });
     }
+  }
+
+  handle_click (num_cell) {
+    const { game, prevCell } = this.state;
+    const currentCell = game[num_cell];
+    this.setState({ game: { ...game, [currentCell.id]: { ...currentCell, isShow: true } } });
+    setTimeout(() => this.check(num_cell), 500);
   }
 
   prevCellIsPairOfCurrentCell (currentCell) {
@@ -133,7 +135,7 @@ export default class GameField extends React.Component {
           {this.build_field()}
         </div>
         <button onClick={() => (this.generate_game())}>Start</button>
-        <Timer timerIsStart={timerIsStart} />
+        <Timer ref={this.timer} timerIsStart={timerIsStart} />
       </div>
     );
   }

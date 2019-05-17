@@ -3,7 +3,7 @@ import React from 'react';
 export default class Timer extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { minutes: 0, sec: 0, milisec: 0 }
+    this.state = { minutes: 0, sec: 0, milisec: 0, fakeMilisec: '000' }
   }
 
   componentDidUpdate(prevProps) {
@@ -33,7 +33,8 @@ export default class Timer extends React.Component {
   incMilisec() {
     const { milisec } = this.state;
     const newMilisec = milisec > 899 ? 0 : milisec + 100;
-    this.setState({ milisec: newMilisec })
+    const fakeMilisec = this.buildMilisec(newMilisec);
+    this.setState({ milisec: newMilisec, fakeMilisec })
   }
 
   incSec() {
@@ -47,7 +48,7 @@ export default class Timer extends React.Component {
     this.setState({ minutes: minutes + 1 })
   }
 
-  renderMilisec(milisec) {
+  buildMilisec(milisec) {
     if (milisec === 0) {
       return '000';
     }
@@ -62,8 +63,7 @@ export default class Timer extends React.Component {
   }
 
   render() {
-    const { minutes, sec, milisec } = this.state;
-    const renderedMilisec = this.renderMilisec(milisec);
-    return <p>{minutes}:{sec}.{renderedMilisec}</p>
+    const { minutes, sec, fakeMilisec } = this.state;
+    return <p>{minutes}:{sec}.{fakeMilisec}</p>
   }
 }
