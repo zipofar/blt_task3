@@ -2,9 +2,10 @@ import React from 'react';
 import _ from 'lodash';
 import './gameField.css';
 import Timer from './timer';
+import Cell from './cell';
 
 export default class GameField extends React.Component {
-  static defaultProps = { game_dimension: 4 }
+  static defaultProps = { gameDimension: 4 }
 
   constructor (props) {
     super(props);
@@ -22,18 +23,19 @@ export default class GameField extends React.Component {
     }
   }
 
-  generate_colors (count_pairs) {
-    return Array(count_pairs)
+  buildColorCells (countPairs) {
+    const { shuffleFn } = this.props;
+    return Array(countPairs)
       .fill(0)
       .map((_e, i) => ([`color-${i + 1}`, `color-${i + 1}`]))
       .flat()
-      .sort((a, b) => (Math.random() - 0.5));
+      .sort(shuffleFn);
   }
 
-  generate_game () {
-    const { game_dimension } = this.props;
-    const colors = this.generate_colors(game_dimension * 2);
-    const game = colors.reduce((a, e, i) => ({...a, [i + 1]: { color: e, isShow: false, inGame: true, id: i + 1 }}), {});
+  generateGame () {
+    const { gameDimension } = this.props;
+    const cells = this.buildColorCells(gameDimension * 2);
+    const game = cells.reduce((a, e, i) => ({...a, [i + 1]: { color: e, isShow: false, inGame: true, id: i + 1 }}), {});
     this.setState({ game, gameState: 'play' });
   }
 
@@ -43,9 +45,9 @@ export default class GameField extends React.Component {
     return _.isUndefined(hiddenCell);
   }
 
-  check (num_cell) {
+  check (numCell) {
     const { game, prevCell } = this.state;
-    const currentCell = game[num_cell];
+    const currentCell = game[numCell];
 
     if (currentCell.inGame === false) {
       return;
@@ -68,11 +70,11 @@ export default class GameField extends React.Component {
     }
   }
 
-  handle_click (num_cell) {
+  handleClick (numCell) {
     const { game, prevCell } = this.state;
-    const currentCell = game[num_cell];
+    const currentCell = game[numCell];
     this.setState({ game: { ...game, [currentCell.id]: { ...currentCell, isShow: true } } });
-    setTimeout(() => this.check(num_cell), 500);
+    setTimeout(() => this.check(numCell), 500);
   }
 
   prevCellIsPairOfCurrentCell (currentCell) {
@@ -80,48 +82,36 @@ export default class GameField extends React.Component {
     return currentCell.color === prevCell.color;
   }
 
-  build_field () {
-    const { game_dimension } = this.props;
+  buildField () {
+    const { gameDimension } = this.props;
+    const { game } = this.state;
+    const gameIsEmpty = _.isEmpty(game);
+
     return(
-      Array(game_dimension)
+      Array(gameDimension)
       .fill(0)
       .map((_e, i) => {
-        const num_row = i + 1;
+        const numRow = i + 1;
         return(
-          <div key={`row-${num_row}`} className="game-field__row">
-            {this.build_row(num_row)}
+          <div key={`row-${numRow}`} className="game-field__row">
+            {this.buildRow(numRow, gameIsEmpty)}
           </div>
         );
       })
     );
   }
 
-  build_row (num_row) {
-    const { game } = this.state;
-    const { game_dimension } = this.props;
+  buildRow (numRow, gameIsEmpty) {
+    const { gameDimension } = this.props;
     return(
-      Array(game_dimension)
+      Array(gameDimension)
       .fill(0)
       .map((_e, i) => {
-        const start_num_col = (game_dimension * num_row) - game_dimension + 1;
-        const num_cell = start_num_col + i;
-        if(_.isEmpty(game)) {
-          return(
-            <div
-              key={`cell-${num_cell}`}
-              className="game-field__col game-field__col__color-none"
-            />
-          );
-        }
-        const currentCell = game[num_cell];
-        const colorClass = currentCell.isShow ? `game-field__col__${currentCell.color}` : 'game-field__col__color-none';
-        return(
-          <div
-            key={`cell-${num_cell}`}
-            className={`game-field__col ${colorClass}`}
-            onClick={() => (this.handle_click(num_cell))}
-          />
-        );
+        const startNumColumn = (gameDimension * numRow) - gameDimension + 1;
+        const cellId = startNumColumn + i;
+        const cell = game[cellId];
+        const props = { cell, gameIsEmpty };
+        return <Cell { ...props } />;
       })
     );
   }
@@ -132,9 +122,9 @@ export default class GameField extends React.Component {
     return (
       <div>
         <div className="game-field">
-          {this.build_field()}
+          {this.buildField()}
         </div>
-        <button onClick={() => (this.generate_game())}>Start</button>
+        <button onClick={() => (this.generateGame())}>Start</button>
         <Timer ref={this.timer} timerIsStart={timerIsStart} />
       </div>
     );
