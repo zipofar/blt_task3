@@ -9,7 +9,7 @@ export default class GameField extends React.Component {
 
   constructor (props) {
     super(props);
-    this.state = { game: {}, prevCell: {}, gameState: 'stop' }
+    this.state = { game: {}, prevCell: {}, gameState: 'empty' }
     this.timer = React.createRef();
   }
 
@@ -59,34 +59,30 @@ export default class GameField extends React.Component {
     }
 
     if (currentCell.color === prevCell.color && currentCell.id !== prevCell.id) {
+      const newPrevCell = { ...prevCell, inGame: false };
+      const newCurrentCell = { ...currentCell, inGame: false };
+      this.setState({ game: { ...game, [prevCell.id]: newPrevCell, [currentCell.id]: newCurrentCell } });
       this.setState({ prevCell: {} });
-      this.setState({ game: { ...game, [prevCell.id]: { ...prevCell, inGame: false }, [currentCell.id]: { ...currentCell, inGame: false } } });
       return;
     }
 
     if (currentCell.color !== prevCell.color) {
-      this.setState({ game: { ...game, [prevCell.id]: { ...prevCell, isShow: false }, [currentCell.id]: { ...currentCell, isShow: false } } });
+      const newPrevCell = { ...prevCell, isShow: false };
+      const newCurrentCell = { ...currentCell, isShow: false };
+      this.setState({ game: { ...game, [prevCell.id]: newPrevCell, [currentCell.id]: newCurrentCell } });
       this.setState({ prevCell: {} });
     }
   }
 
   handleClick (numCell) {
-    const { game, prevCell } = this.state;
+    const { game } = this.state;
     const currentCell = game[numCell];
     this.setState({ game: { ...game, [currentCell.id]: { ...currentCell, isShow: true } } });
     setTimeout(() => this.check(numCell), 500);
   }
 
-  prevCellIsPairOfCurrentCell (currentCell) {
-    const { prevCell } = this.state;
-    return currentCell.color === prevCell.color;
-  }
-
   buildField () {
     const { gameDimension } = this.props;
-    const { game } = this.state;
-    const gameIsEmpty = _.isEmpty(game);
-
     return(
       Array(gameDimension)
       .fill(0)
@@ -94,38 +90,38 @@ export default class GameField extends React.Component {
         const numRow = i + 1;
         return(
           <div key={`row-${numRow}`} className="game-field__row">
-            {this.buildRow(numRow, gameIsEmpty)}
+            {this.buildRow(numRow)}
           </div>
         );
       })
     );
   }
 
-  buildRow (numRow, gameIsEmpty) {
+  buildRow (numRow) {
     const { gameDimension } = this.props;
+    const { game, gameState } = this.state;
     return(
       Array(gameDimension)
       .fill(0)
       .map((_e, i) => {
         const startNumColumn = (gameDimension * numRow) - gameDimension + 1;
         const cellId = startNumColumn + i;
-        const cell = game[cellId];
-        const props = { cell, gameIsEmpty };
-        return <Cell { ...props } />;
+        const handleClick = () => (this.handleClick(cellId));
+        const props = { cellId, game, gameState, handleClick };
+        return <Cell key={cellId} { ...props } />;
       })
     );
   }
 
   render() {
     const { gameState } = this.state;
-    const timerIsStart = gameState === 'play';
     return (
       <div>
         <div className="game-field">
           {this.buildField()}
         </div>
         <button onClick={() => (this.generateGame())}>Start</button>
-        <Timer ref={this.timer} timerIsStart={timerIsStart} />
+        <Timer ref={this.timer} timerIsStart={gameState === 'play'} />
       </div>
     );
   }

@@ -1,21 +1,23 @@
 import React from 'react';
 
-export default function Cell(props) {
-  const { cell, gameIsEmpty } = props;
-  if(_.isEmpty(game)) {
-    return(
-      <div
-        key={`cell-${cell.id}`}
-        className="game-field__col game-field__col__color-none"
-      />
-    );
-  }
+export default (props) => {
+  const { cellId, game, gameState, handleClick } = props;
+  const cell = game[cellId];
+  return gameState === 'empty' ? getEmptyCell(cellId) : getColorCell(cell, handleClick);
+}
+
+const getColorCell = (cell, handleClick) => {
   const colorClass = cell.isShow ? `game-field__col__${cell.color}` : 'game-field__col__color-none';
   return(
     <div
-      key={`cell-${cell.id}`}
       className={`game-field__col ${colorClass}`}
-      onClick={() => (this.handleClick(cell.id))}
+      onClick={handleClick}
     />
   );
-};
+}
+
+const getEmptyCell = (cellId) => (
+  <div
+    className="game-field__col game-field__col__color-none"
+  />
+);
