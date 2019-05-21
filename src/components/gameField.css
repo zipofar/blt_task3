@@ -1,6 +1,6 @@
 .game-field {
   background-color: gray;
-  width: 220px;
+  width: 210px;
   padding: 20px;
 }
 
@@ -9,21 +9,21 @@
 }
 
 .game-field__row:not(:first-child) {
-  margin-top: -4px;
+  margin-top: -2px;
 }
 
 .game-field__col {
   width: 50px;
   height: 50px;
-  border: 4px solid black;
+  border: 2px solid black;
 }
 
 .game-field__col:not(:first-child) {
-  margin-left: -4px;
+  margin-left: -2px;
 }
 
 .game-field__col__color-none {
-  background-color: #becce2;
+  background-color: #ffffff;
 }
 
 .game-field__col__color-1 {
